@@ -1,0 +1,17 @@
+FROM golang:latest
+
+WORKDIR /app
+
+COPY ./go.mod ./go.sum ./
+
+RUN go install github.com/cosmtrek/air@latest
+
+RUN go mod download
+
+COPY . .
+
+RUN go build -buildvcs=false -o ./tmp/main ./cmd
+
+EXPOSE 8080
+
+CMD ["air", "-c", ".air.toml"]
