@@ -9,7 +9,7 @@ services:
     depends_on:
       - redis
     environment:
-      - REDIS_ADDR=redis:6379
+      - REDIS_ADDR=redisRepository:6379
     volumes:
       - ./.env:/app/.env
       - .:/app

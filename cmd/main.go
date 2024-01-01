@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/go-redis/redis/v8"
 	"net/http"
-	"os"
+	"rateLimiter/internal/repository/redisRepository"
 )
 
 type RateLimiter struct {
@@ -25,21 +25,7 @@ func (rl *RateLimiter) Middleware(next http.Handler) http.Handler {
 }
 
 func main() {
-	addr := os.Getenv("REDIS_ADDR")
-
-	if addr == "" {
-		addr = "localhost:6379"
-	}
-
-	redisAddr, exists := os.LookupEnv("REDIS_ADDR")
-
-	if !exists {
-		redisAddr = "localhost:6379"
-	}
-
-	client := redis.NewClient(&redis.Options{
-		Addr: redisAddr,
-	})
+	client := redisRepository.Config()
 
 	limiter := NewRateLimiter(client, 10)
 
