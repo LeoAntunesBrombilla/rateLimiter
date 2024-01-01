@@ -47,6 +47,5 @@ func main() {
 		w.Write([]byte("Hello, World!"))
 	})))
 
-	// Inicia o servidor
 	http.ListenAndServe(":8080", nil)
 }
