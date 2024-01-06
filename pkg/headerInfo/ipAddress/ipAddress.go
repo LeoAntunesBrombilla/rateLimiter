@@ -1,14 +1,15 @@
 package ipAddress
 
-import "net/http"
+import (
+	"net/http"
+	"strings"
+)
 
 func ReadUserIP(r *http.Request) string {
-	IPAddress := r.Header.Get("X-Real-Ip")
-	if IPAddress == "" {
-		IPAddress = r.Header.Get("X-Forwarded-For")
+	ipPort := r.RemoteAddr
+	ip := ipPort
+	if idx := strings.LastIndex(ipPort, ":"); idx != -1 {
+		ip = ipPort[:idx]
 	}
-	if IPAddress == "" {
-		IPAddress = r.RemoteAddr
-	}
-	return IPAddress
+	return ip
 }

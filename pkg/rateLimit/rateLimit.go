@@ -2,6 +2,7 @@ package rateLimit
 
 import (
 	"net/http"
+	"os"
 	"rateLimiter/internal/repository"
 	"rateLimiter/pkg/headerInfo/accessToken"
 	"rateLimiter/pkg/headerInfo/ipAddress"
@@ -14,8 +15,12 @@ var requestCounts = make(map[string]int)
 
 func RateLimit(r *http.Request, accessKey string, dbClient repository.Database) bool {
 	ip := ipAddress.ReadUserIP(r)
-
 	token := accessToken.ReadAccessToken(r, accessKey)
+	timeExpiration, exists := os.LookupEnv("TIME_EXP")
+
+	if !exists {
+		timeExpiration = "10"
+	}
 
 	key := "limiter:ip:" + ip
 	limit := 10
@@ -31,7 +36,11 @@ func RateLimit(r *http.Request, accessKey string, dbClient repository.Database) 
 	}
 
 	currentTime := time.Now().Unix()
-	windowDuration := int64(2)
+	windowDuration, err := strconv.ParseInt(timeExpiration, 10, 64)
+
+	if err != nil {
+		panic("Fatal error during conversion of token")
+	}
 
 	if start, exists := requestTimestamps[key]; exists {
 		if currentTime-start < windowDuration {
