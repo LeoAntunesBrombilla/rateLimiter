@@ -4,6 +4,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"net/http"
+	"os"
 	"testing"
 )
 
@@ -21,18 +22,33 @@ func (m *MockRedisRepository) Set(key string, value interface{}) error {
 	return args.Error(0)
 }
 
+func TestMain(m *testing.M) {
+	os.Setenv("API_KEY_NAME_LIST", "api_key,OTHER_KEY")
+
+	code := m.Run()
+
+	err := os.Unsetenv("API_KEY_NAME_LIST")
+	if err != nil {
+		return
+	}
+
+	os.Exit(code)
+}
+
 // TestRateLimit verifica se a função RateLimit permite uma requisição
 // quando o limite de taxa não é excedido. A função mock 'Get' é configurada
 // para retornar um limite alto, garantindo que a requisição seja permitida.
 func TestRateLimit(t *testing.T) {
 	mockRepo := new(MockRedisRepository)
 
-	mockRepo.On("Get", "limiter:token:example_token").Return("100", nil)
+	mockRepo.On("Get", "api_key").Return("100", nil)
+	mockRepo.On("Set", mock.Anything, mock.Anything).Return(nil)
+
 	r, _ := http.NewRequest("GET", "/", nil)
 	r.RemoteAddr = "127.0.0.1:1234"
-	r.Header.Set("ACCESS_TOKEN", "example_token")
+	r.Header.Set("api_key", "example_token_value")
 
-	result := RateLimit(r, "ACCESS_TOKEN", mockRepo)
+	result := RateLimit(r, "api_key", mockRepo)
 
 	assert.True(t, result, "Expected RateLimit to return true")
 
@@ -45,17 +61,19 @@ func TestRateLimit(t *testing.T) {
 // A requisição subsequente deve ser bloqueada, indicando que o limite foi excedido.
 func TestRateLimitExceeded(t *testing.T) {
 	mockRepo := new(MockRedisRepository)
-	mockRepo.On("Get", "limiter:token:example_token").Return("10", nil)
+
+	mockRepo.On("Get", "api_key").Return("10", nil)
+	mockRepo.On("Set", mock.Anything, mock.Anything).Return(nil)
 
 	r, _ := http.NewRequest("GET", "/", nil)
 	r.RemoteAddr = "127.0.0.1:1234"
-	r.Header.Set("ACCESS_TOKEN", "example_token")
+	r.Header.Set("api_key", "example_token_value")
 
 	for i := 0; i < 10; i++ {
-		_ = RateLimit(r, "ACCESS_TOKEN", mockRepo)
+		_ = RateLimit(r, "api_key", mockRepo)
 	}
 
-	result := RateLimit(r, "ACCESS_TOKEN", mockRepo)
+	result := RateLimit(r, "api_key", mockRepo)
 
 	assert.False(t, result, "Expected RateLimit to return false, indicating the rate limit is exceeded")
 
@@ -68,6 +86,7 @@ func TestRateLimitWithIP(t *testing.T) {
 	mockRepo := new(MockRedisRepository)
 	ip := "127.0.0.1:1234"
 
+	mockRepo.On("Set", mock.Anything, mock.Anything).Return(nil)
 	r, _ := http.NewRequest("GET", "/", nil)
 	r.RemoteAddr = ip
 
@@ -87,6 +106,7 @@ func TestRateLimitExceededWithIP(t *testing.T) {
 	ip := "127.0.0.1:1234"
 
 	r, _ := http.NewRequest("GET", "/", nil)
+	mockRepo.On("Set", mock.Anything, mock.Anything).Return(nil)
 	r.RemoteAddr = ip
 
 	requestCounts = make(map[string]int)

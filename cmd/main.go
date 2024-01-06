@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/go-redis/redis/v8"
 	"github.com/joho/godotenv"
 	"log"
 	"net/http"
@@ -16,22 +15,17 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	redisClient := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "",
-		DB:       0,
-	})
-
+	redisClient := redisRepository.Config()
 	redisRepo := redisRepository.NewRedisRepository(redisClient)
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", yourMainHandler)
+	mux.HandleFunc("/", handler)
 
 	wrappedMux := middleware.RateLimitMiddleware(redisRepo)(mux)
 
 	http.ListenAndServe(":8080", wrappedMux)
 }
 
-func yourMainHandler(w http.ResponseWriter, r *http.Request) {
+func handler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello, World!")
 }

@@ -3,7 +3,9 @@ package redisRepository
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/go-redis/redis/v8"
+	"log"
 	"time"
 )
 
@@ -21,9 +23,15 @@ func (r *RedisRepository) Set(key string, value interface{}) error {
 	ctx := context.Background()
 
 	expiration := time.Duration(0)
+	fmt.Println("Saving")
+	fmt.Println(key)
+	fmt.Println(value)
+	fmt.Println(expiration)
+	fmt.Println("DONE")
 	err := r.client.Set(ctx, key, value, expiration).Err()
 
 	if err != nil {
+		log.Printf("Error setting key in Redis: %v", err)
 		return err
 	}
 

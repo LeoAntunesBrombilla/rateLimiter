@@ -4,10 +4,10 @@
 url="http://localhost:8080"
 
 # Token value
-token="10"
+token="30"
 
 # Make a number of requests
 for i in {1..20}
 do
-   curl -H "API_KEY: $token" $url
+   curl -H "api_key: $token" $url
 done

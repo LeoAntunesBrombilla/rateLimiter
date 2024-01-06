@@ -6,14 +6,7 @@ import (
 )
 
 func Config() *redis.Client {
-	addr := os.Getenv("REDIS_ADDR")
-
-	if addr == "" {
-		addr = "localhost:6379"
-	}
-
 	redisAddr, exists := os.LookupEnv("REDIS_ADDR")
-
 	if !exists {
 		redisAddr = "localhost:6379"
 	}
