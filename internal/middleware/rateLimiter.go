@@ -1,9 +1,9 @@
 package middleware
 
 import (
+	"github.com/LeoAntunesBrombilla/rateLimiter/internal/repository"
+	"github.com/LeoAntunesBrombilla/rateLimiter/pkg/rateLimit"
 	"net/http"
-	"rateLimiter/internal/repository"
-	"rateLimiter/pkg/rateLimit"
 )
 
 func RateLimitMiddleware(dbClient repository.Database) func(handler http.Handler) http.Handler {

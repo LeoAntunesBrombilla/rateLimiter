@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
+	"github.com/LeoAntunesBrombilla/rateLimiter/internal/middleware"
+	"github.com/LeoAntunesBrombilla/rateLimiter/internal/repository/redisRepository"
 	"github.com/joho/godotenv"
 	"log"
 	"net/http"
-	"rateLimiter/internal/middleware"
-	"rateLimiter/internal/repository/redisRepository"
 )
 
 func main() {

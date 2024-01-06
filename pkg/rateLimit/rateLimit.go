@@ -1,12 +1,12 @@
 package rateLimit
 
 import (
+	"github.com/LeoAntunesBrombilla/rateLimiter/internal/repository"
+	"github.com/LeoAntunesBrombilla/rateLimiter/pkg/headerInfo/accessToken"
+	"github.com/LeoAntunesBrombilla/rateLimiter/pkg/headerInfo/ipAddress"
 	"log"
 	"net/http"
 	"os"
-	"rateLimiter/internal/repository"
-	"rateLimiter/pkg/headerInfo/accessToken"
-	"rateLimiter/pkg/headerInfo/ipAddress"
 	"strconv"
 	"time"
 )
