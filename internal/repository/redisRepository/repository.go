@@ -1,6 +1,11 @@
 package redisRepository
 
-import "github.com/go-redis/redis/v8"
+import (
+	"context"
+	"errors"
+	"github.com/go-redis/redis/v8"
+	"time"
+)
 
 type RedisRepository struct {
 	client *redis.Client
@@ -13,9 +18,28 @@ func NewRedisRepository(client *redis.Client) *RedisRepository {
 }
 
 func (r *RedisRepository) Set(key string, value interface{}) error {
-	panic("Implement me!")
+	ctx := context.Background()
+
+	expiration := time.Duration(0)
+	err := r.client.Set(ctx, key, value, expiration).Err()
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (r *RedisRepository) Get(key string) (error, value interface{}) {
-	panic("Implement me!")
+func (r *RedisRepository) Get(key string) (interface{}, error) {
+	ctx := context.Background()
+
+	result, err := r.client.Get(ctx, key).Result()
+
+	if errors.Is(err, redis.Nil) {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }

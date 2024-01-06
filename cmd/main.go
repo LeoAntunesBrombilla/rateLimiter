@@ -1,37 +1,31 @@
 package main
 
 import (
+	"fmt"
 	"github.com/go-redis/redis/v8"
 	"net/http"
+	"rateLimiter/internal/middleware"
 	"rateLimiter/internal/repository/redisRepository"
 )
 
-type RateLimiter struct {
-	redisClient *redis.Client
-	rateLimit   int
-}
-
-func NewRateLimiter(client *redis.Client, rateLimit int) *RateLimiter {
-	return &RateLimiter{
-		redisClient: client,
-		rateLimit:   rateLimit,
-	}
-}
-
-func (rl *RateLimiter) Middleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		next.ServeHTTP(w, r)
-	})
-}
-
 func main() {
-	client := redisRepository.Config()
 
-	limiter := NewRateLimiter(client, 10)
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "",
+		DB:       0,
+	})
 
-	http.Handle("/", limiter.Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Hello, World!"))
-	})))
+	redisRepo := redisRepository.NewRedisRepository(redisClient)
 
-	http.ListenAndServe(":8080", nil)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", yourMainHandler)
+
+	wrappedMux := middleware.RateLimitMiddleware(redisRepo)(mux)
+
+	http.ListenAndServe(":8080", wrappedMux)
+}
+
+func yourMainHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Hello, World!")
 }
